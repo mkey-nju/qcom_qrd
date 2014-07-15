@@ -1,0 +1,184 @@
+echo "c key home 2" > /dev/mlidbg0
+echo "c key back 2" > /dev/mlidbg0
+echo "c key enter 2" > /dev/mlidbg0
+echo "c key end 2" > /dev/mlidbg0
+echo "c menu end 2" > /dev/mlidbg0
+
+echo "c i2c w 1 0x7 4 0x10 0x2 0x1" > /dev/mlidbg0
+echo "c i2c r 1 0x5c 0x80 20" > /dev/mlidbg0
+
+echo "c mem r 0xa1000010 1" > /dev/mlidbg0
+
+MIPI CSI1 MIPI_PROTOCOL_STATUS
+    echo "c mem r 0xa1000010 1" > /dev/mlidbg0
+    echo "c video ResetNTSCp" > /dev/mlidbg0
+
+MIPI CSI1 MIPI_SHORT_PACKET_CAPTURE_STATUS
+    echo "c mem r 0xa1000014 1" > /dev/mlidbg0
+
+MIPI CSI0 MIPI_PROTOCOL_STATUS
+    echo "c mem r 0xa0f00010 1" > /dev/mlidbg0
+    echo "c video ResetNTSCp" > /dev/mlidbg0
+MIPI CSI0 MIPI_SHORT_PACKET_CAPTURE_STATUS
+    echo "c mem r 0xa0f00014 1" > /dev/mlidbg0
+
+echo "c video on" > /dev/lidbg_hal
+echo "c video off" > /dev/lidbg_hal
+
+echo "c i2c r 1 0x45 0x1e 1" > /dev/lidbg_hal  
+echo "c i2c w 1 0x45 2 0x3 0x7" > /dev/lidbg_hal
+
+注：
+    echo "c TC358 Read 0x0100 16" > /dev/lidbg_hal
+                      add  width
+    echo "c TC358 Write 0x0100 0x0123 16" > /dev/lidbg_hal
+                  add     valu  width
+
+
+echo "c video Tw9912 write 0x13 0xa0" > /dev/lidbg_hal
+echo "c video Tw9912 Read 0x23" > /dev/lidbg_hal
+
+亮度
+    echo "c video Tw9912 write 0x10 0xe7" > /dev/lidbg_hal
+    echo "c video Tw9912 Read 0x10" > /dev/lidbg_hal
+对比度
+    echo "c video Tw9912 write 0x11 0x64" > /dev/lidbg_hal
+    echo "c video Tw9912 Read 0x11" > /dev/lidbg_hal
+HUE
+    echo "c video Tw9912 write 0x15 0x0" > /dev/lidbg_hal
+    echo "c video Tw9912 Read 0x15" > /dev/lidbg_hal
+chroma u
+chroma v
+    echo "c video Tw9912 write 0x13 0x80" > /dev/lidbg_hal
+    echo "c video Tw9912 write 0x14 0x80" > /dev/lidbg_hal
+********************************************************************************************************************
+开发备忘：
+1、如何dump视频的YUV原数据，
+脚本如下：
+
+#将如下的内容写入一个脚本XX.sh中运行，如果没有/root/桌面/dump/ 请先建立该文件夹 dump
+while :;do
+adb shell chmod 777 data/
+echo "按回车,继续"
+read
+echo "删除本地文件dump下的视频数据"
+rm -f /root/桌面/dump/*
+echo "等待手机中。。。"
+adb wait-for-device && adb shell rm data/*.yuv
+echo "删除手机文件data下的视频数据"
+echo "dump...."
+adb shell setprop persist.camera.dumpimg 1
+sleep 2
+adb shell setprop persist.camera.dumpimg 0
+
+adb pull data/0p_720x480.yuv /root/桌面/dump
+adb pull data/1p_720x480.yuv /root/桌面/dump
+adb pull data/2p_720x480.yuv /root/桌面/dump
+adb pull data/3p_720x480.yuv /root/桌面/dump
+adb pull data/4p_720x480.yuv /root/桌面/dump
+adb pull data/5p_720x480.yuv /root/桌面/dump
+adb pull data/6p_720x480.yuv /root/桌面/dump
+adb pull data/7p_720x480.yuv /root/桌面/dump
+adb pull data/8p_720x480.yuv /root/桌面/dump
+adb pull data/9p_720x480.yuv /root/桌面/dump
+done
+#脚本结束
+
+dump的代码实现在QcameaHWI_Preview.cpp中的 mHalCameCtrl->dumpFrameToFile(xxx
+
+2、如何查看帧率
+开启帧率打印
+adb shell setprop persist.debug.sf.showfps 1
+关闭帧率打印
+adb shell setprop persist.debug.sf.showfps 0
+过滤adb logcat | grep "Preview Frames Per Second"
+帧率实现在 QcameaHWI_Preview.cpp     mHalCamCtrl->debugShowPreviewFPS();
+
+
+3、如何丢帧
+在QcameaHWI_Preview.cpp status_t QCameraStream_preview::processPreviewFrame ( 中有个计数变量 index =1;
+
+4、CSI 通道数的选择，ov5647_truly_cm6868_v4l2.c ov5647_truly_cm6868_csi_params = 中的 lane_cnt = 2; 2表示用双通道（2对数据通道1对时钟通道），1就用 1 对数据通道传输
+
+5、视频数据分辨率的设置 在 msm_sensor.c msm_sensor_get_output_info(  中
+
+6、芯片配置的内核入口 ov5647_truly_cm6868_v4l2.c ov5647_truly_cm6868_sensor_setting( 的 video_init_config(
+
+7、视频分屏判断入口在 cameaHWI_Preview.cpp 的 status_t QCameraStream_preview::processPreviewFrame (  实现在FlyCamea.cpp中
+
+8、GPIo i2c 图像旋转角度等配置在板文件 board-msm7627a-camera.c 中的宏 CONFIG_OV5647_TRULY_CM6868下
+
+9、视频图像上下左右移动可以在2个地方做修改；
+		a、在上层ov5647_truly_cm6868_u.c 中的 ov5647_truly_cm6868_cropinfo[] 数组填入所以裁剪的信息。
+		b、通过tw9912的寄存器改变输出图像的位置，该情况比较复杂些分为倒车的 和 DVD 或 AUX 的。
+       a1、倒车：下移，要结合HAL 中的FlyCamera.cpp 中的代码分析，倒车的图像下移是用来“腾出”顶部的黑色线，用来协助判断分屏是否发生，这看代码
+						Flycamera.cpp 中的bool FlyCameraImageDownFindBlackLine() 函数，和lidbg_videoin_main.c 的 tw9912info_t global_tw9912_info_for_NTSC_I =
+			 a2、 倒车：左右移动，直接修改代码的配额参数，寄存器地址为 0xa 0xb 两个寄存器的值。
+			 a3、	其他的图像左右和上下移动 也是直接修改配置参数文件的值。
+
+10、图像颜色、亮度、色调的修改比较频繁，而且修改啦亮度和色彩参数后，HAL FlyCamera.cpp中的分屏判断的阀值也要对应的重新修改。
+		对于倒车、修改的入口在video_init_config.c 数组 video_image_config_parameter_buffer中，
+    对于DVD 在video_init_config_tab.h 的const u8 Image_Config_separation[5][11] = //DVD separation 和 static u8 Tw9912_image_global_separation[5][2] = //DVD separation 
+		对于AUX 在video_init_config_tab.h 的const u8 Image_Config_AUX_BACK_PAL_I[5][11] = 和 static u8 Tw9912_image_global_AUX_BACK_PAL_I[5][2] =//PAL_i
+
+		修改啦 图像的 亮度值和色彩值后，一定要对分屏检测机制进行重新调试，以下就是当改变啦这些值后该如何去检查该该机制是否还工作正常。
+    FlyCamera.cpp调试信息的过滤关键字 是 adb logcat | grep "Flyvide" 这个信息可以让你获取得到目前该部分的工作情况。
+    倒车的判断阀值 #define BCAR_BLACK_VALUE_UPERR_LIMIT /*0x42*/ 0x42（该值可以结合图像显示软件（文件类型NV12） 和 二进制查看软件分析）。
+    其他请看函数DetermineImageSplitScreen函数中，if((*piont_crcb) < (0x7f - 3) || (*piont_crcb) > (0x80+3) ) 修改这个判断表达式即可。
+
+11、当如果进入视频界面后没图像（黑色屏幕），第一步看帧率（上面说到），没帧率说明下面没数据往上传，往往的原因是 tw9912 没数据输出。
+12、当出现FlyUI错误时（视频退出 或 进入状态下）先检查内核串口打印是否关闭啦，没关闭到recovery下输入密码51751700关闭串口打印，接下来看内核调试信息有没有一条这个“ wait_event error -110”(代码在 msm.c 445行)，有，说明是在退出时遇到啦问题。原因很可能是TW9912 没数据输送给msm导致等待数据超时。这时检查下，第一步在出错时候tw9912输出是否有数据输出，第二步有输出时候看内核的一条信息在msm_vfe7x27a_v4l2.c 的宏MSG_SOF 21（表示msm收到啦一帧数据） 有没有打印（自己在case MSG_SOF分支下加入调试信息）。
+
+
+
+																										DVD 代码执行流程
+video_init_config.c
+int flyVideoInitall_in(u8 Channel) //传入参数Channel == YIN2，切换通道到DVD
+
+/home/Fly/3060pr/R8625QSOSKQLYA3060-v2/kernel/drivers/media/video/msm/sensors/ov5647_truly_cm6868_v4l2.c
+video_init_config(PAL_P);
+	void chips_config_begin(vedio_format_t config_pramat)
+       chips_config_yuv_begin();
+					tw9912_config_array_NTSCp();
+						while(config_pramat_piont[i*2] != 0xfe)
+						{
+								if(tw9912_write((char *)&config_pramat_piont[i*2]) == NACK) goto CONFIG_not_ack_fail;
+								//		tw9912_dbg("w a=%x,v=%x\n",config_pramat_piont[i*2],config_pramat_piont[i*2+1]);
+								i++;
+						}
+
+
+
+
+
+																										倒车 代码执行流程
+
+//将工调用
+int flyVideoInitall_in(u8 Channel)
+vedio_format_t flyVideoTestSignalPin_in(u8 Channel)
+
+
+video_init_config(PAL_P);
+	chips_config_cvbs_begin();
+		tw9912_config_for_cvbs_signal(info_com_top_Channel);
+			ret = tw9912_config_array( YIN3);
+
+				tw9912_channel_choeces_again(Channel);
+				信号格式检测函数，检测视频格式
+        while(config_pramat_piont[i*2] != 0xfe)
+        {
+            if(tw9912_write((char *)&config_pramat_piont[i*2]) == NACK) goto CONFIG_not_ack_fail;
+            if(signal_is_how[Channel].Format == NTSC_P \
+                    && config_pramat_piont[i*2] > 0x24\
+                    && config_pramat_piont[i*2] < 0x2d)
+                usleep(100);
+            i++;
+        }
+
+
+
+如果要使用隔行数据  用软件做隔行转逐行只要将lidbg 的分支切换到 git checkout git checkout de-interlace即可，内核其它参数不用修改，
+注，目前分支de-interlace只实现啦NTSC的隔行搬运，PAL的还未做 需要做请参考NTSC修改的节点。
+
+
+

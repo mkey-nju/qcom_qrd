@@ -1,0 +1,71 @@
+# 此为注释 – 将被 Git 忽略
+# *.a       # 忽略所有 .a 结尾的文件
+# !lib.a    # 但 lib.a 除外
+# /TODO     # 仅仅忽略项目根目录下的 TODO 文件，不包括 subdir/TODO
+# build/    # 忽略 build/ 目录下的所有文件
+# doc/*.txt # 会忽略 doc/notes.txt 但不包括 doc/server/arch.txt
+
+*.a
+*.o
+*.ko
+*.order
+*.cmd
+*.mod.c
+*.mod
+*.symvers
+*.zip
+*.rar
+*.gz
+*.bz2
+*.xz
+*.so
+*.bin
+*.patch
+*.lst
+*~
+*_
+*.i
+*.d
+*.png
+*.gitk*
+*.lib
+*.orig
+*.tmp
+*.ver
+*.apk
+*.jpg
+*.dex
+*.class
+
+err_log
+copy_log
+build_log
+git_log
+dbg_cfg.sh
+push-kejing.sh
+key_hkjing.sh
+version.sh
+build_cfg.mk
+i2c-algo-bit.c
+i2c-gpio.c
+build_time.conf
+
+tmp/
+out/
+other/
+collect/
+notes/
+other/
+out_release/
+log/
+
+
+
+
+#
+# git files that we don't want to ignore
+#
+
+
+
+

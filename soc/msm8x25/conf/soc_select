@@ -1,0 +1,31 @@
+
+################hal select####################
+
+CONFIG_HAL_GPSLIB=y
+CONFIG_HAL_CAMERA_8x25Q=y
+CONFIG_HAL_VOLD_8x25Q=y
+CONFIG_HAL_SERVER=y
+
+export CONFIG_HAL_GPSLIB
+export CONFIG_HAL_CAMERA_8x25Q
+export CONFIG_HAL_VOLD_8x25Q
+export CONFIG_HAL_SERVER
+
+
+################driver select####################
+CONFIG_BP_MSG=m
+CONFIG_DEVICE=m
+CONFIG_LPC=m
+CONFIG_DRIVERS_DBG=m
+CONFIG_GPS=m
+CONFIG_HAL=m
+CONFIG_TOUCHSCREEN=m
+CONFIG_VIDEO_IN=m
+CONFIG_MONKEY=m
+
+ifeq ($(DBG_PLATFORM),msm7627a)
+        CONFIG_FASTBOOT=m
+else
+	CONFIG_ACC=m
+endif
+

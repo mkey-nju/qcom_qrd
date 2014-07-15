@@ -1,0 +1,26 @@
+#程序旨在使用随机的事件来模拟现实环境,目前只有继电器功能.
+
+两个接口：
+void monkey_run(int enable);
+void monkey_config(int gpio, int on_en, int off_en, int on_ms, int off_ms);
+
+#可用文件浏览器打开机器的/data/lidbg/driver.txt文件来配置已提供的功能,详解如下:
+
+monkey_dbg=0
+	置成1打开调试模式
+monkey_work_en=0
+	开启或者关闭monkey
+gpio=123
+	配置控制继电器的GPIO管脚号
+random_on_en=0    
+	置成0 继电器的开启时间会在0-on_ms间随机选取； 置成1 固定继电器开启时间为on_ms
+random_off_en=0
+on_ms=1000
+	random_on_en为0时,此值表示继电器固定开启时间;random_on_en为1时,此值表示继电器最大开启时间;
+off_ms=1000
+
+
+echo "c monkey 1 123 0 0 1000 1000" >/dev/test_node0   参数列表:(int enable, int gpio, int on_en, int off_en, int on_ms, int off_ms)
+用户空间可通过节点来配置
+
+

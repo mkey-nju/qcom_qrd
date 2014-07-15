@@ -1,0 +1,8 @@
+#monkey
+monkey_work_en=0
+gpio=123
+random_on_en=1
+random_off_en=1
+on_ms=5000
+off_ms=5000
+

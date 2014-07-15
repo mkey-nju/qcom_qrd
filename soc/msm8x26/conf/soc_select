@@ -1,0 +1,18 @@
+
+################hal select####################
+CONFIG_HAL_USERVER=y
+export CONFIG_HAL_USERVER
+CONFIG_HAL_GPSLIB=y
+export CONFIG_HAL_GPSLIB
+################driver select####################
+CONFIG_LIDBG_PM=m
+CONFIG_BP_MSG=m
+CONFIG_LPC=m
+CONFIG_INTERFACE=m
+CONFIG_DRIVERS_DBG=m
+CONFIG_MONKEY=m
+CONFIG_GPS=m
+CONFIG_MSM8226_DEVICE=m
+CONFIG_TOUCHSCREEN=m
+CONFIG_DSI83=m
+

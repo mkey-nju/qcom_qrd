@@ -1,0 +1,7 @@
+#devices
+i2c_ctrl=0
+led_en=1
+lcd_reset=0
+temp_log_freq=10
+fan_onoff_temp=65
+

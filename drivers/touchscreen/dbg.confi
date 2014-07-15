@@ -1,0 +1,5 @@
+#lidbg_ts_probe
+ts_scan_delayms=500
+ts_choose_touchscreen=0
+gt911_choose_config=0
+

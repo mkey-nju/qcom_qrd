@@ -1,0 +1,6 @@
+#fastboot
+kill_task_en=1
+kill_all_task=0
+haslock_resume_times=3
+max_wait_unlock_time=5
+

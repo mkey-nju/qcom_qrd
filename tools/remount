@@ -1,0 +1,17 @@
+ #!/usr/bin/expect
+set timeout 30 
+spawn adb wait-for-device shell
+expect ":"
+send "su\r"
+send "mount -o remount /system\r"
+send "mount -o remount /flysystem\r"
+send "chmod 777 /system\r"
+send "chmod 777 /flysystem\r"
+send "chmod 777 /system/bin\r"
+send "chmod 777 /flysystem/bin\r"
+send "chmod 777 /system/lib/hw\r"
+send "chmod 777 /flysystem/lib/hw\r"
+send "chmod 777 /flysystem/lib/out\r"
+send "exit\r"
+send "exit\r"
+expect eof

@@ -1,0 +1,38 @@
+dbg_cfg.sh编译环境变量配置说明：
+＊DBG_PLATFORM:
+msm7627a--8x25平台
+msm8625--8x25q平台
+
+
+*BOARD_VERSION
+v1--适用于8x25第一版硬件（pcb）
+v2--适用于8x25第二版及最后量产硬件（pcb）
+v3--适用于8x25q车机第一版硬件（pcb）
+V4--新架构程序版本，适用于8x25q第一版硬件之后的版本（pcb）
+
+
+开机自动运行lidbg_servicer和lidbg_loader.ko加载模块:
+*8x25:
+把lidbg_servicer打包进系统，在文件system/core/rootdir/etc/init.qcom.rc添加
+chmod 777 /system/bin/lidbg_servicer  (正式产品是/flysystem/bin目录)
+和
+service lidbg_servicer /system/bin/logwrapper /system/bin/lidbg_servicer  (正式产品是/flysystem/bin目录)
+    class late_start
+    user root
+    group root
+
+*8x25Q:
+a.原生系统：在文件device/qcom/common/rootdir/etc/init.qcom.rc添加
+	on boot 
+	chmod 0644 /system/lib/modules/out/*.ko
+    insmod /system/lib/modules/out/lidbg_loader.ko
+	
+b.产品系统：在文件system/core/rootdir/init.flyaudio.rc添加
+	on boot 
+    chmod 0644 /flysystem/lib/out/*.ko
+    insmod /flysystem/lib/out/lidbg_loader.ko
+和
+service lidbg_servicer /system/bin/logwrapper /flysystem/lib/out/lidbg_servicer
+    class late_start
+    user root
+    group root 	

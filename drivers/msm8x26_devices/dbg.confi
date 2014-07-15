@@ -1,0 +1,4 @@
+#devices
+led_en=1
+ad_en=1
+button_en=0

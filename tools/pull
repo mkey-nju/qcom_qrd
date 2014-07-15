@@ -1,0 +1,10 @@
+ #!/usr/bin/expect
+set timeout -1
+spawn git pull
+expect {
+    "password" { 
+		 send "git\r"
+		 expect -re "file|Already" { send "pull finish\n"}
+		}
+        }
+expect eof

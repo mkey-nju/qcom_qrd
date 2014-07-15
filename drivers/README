@@ -1,0 +1,10 @@
+drivers/example：              调用core的函数接口例子。
+drivers/bp_msg：               打印bp写入共享内存的调试信息。
+drivers/devices：              控制系统正常运行和开关机中必须的外设。
+drivers/fastboot：             处理msm8x25平台休眠唤醒相关。
+drivers/acc：                  处理msm8x25Q平台休眠唤醒相关。
+drivers/gps：                  ublox驱动。
+drivers/touchscreen：          电容屏相关驱动。
+drivers/videoin：              视频输入驱动。
+drivers/interface：            设置函数指针调用，并加载驱动模块（主要是drivers目录下的）。
+drivers/inc：		       drivers下使用的头文件。

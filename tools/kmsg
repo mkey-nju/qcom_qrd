@@ -1,0 +1,7 @@
+ #!/usr/bin/expect
+set timeout 30 
+spawn adb wait-for-device shell
+expect ":"
+send "su\r"
+send "cat /proc/kmsg\r"
+expect eof

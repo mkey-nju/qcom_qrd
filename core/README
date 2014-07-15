@@ -1,0 +1,109 @@
+
+---------lidbg提供调试手段----------
+节点/dev/mlidbg0 写命令:
+mem:
+echo "c mem r 0xf020408c 1" > /dev/mlidbg0
+echo "c mem w 0xf040000c 0x200014" > /dev/mlidbg0
+echo "c mem rb 0xf04000c4 24 5" > /dev/mlidbg0
+echo "c mem wb 0xF08A0038 26 1 0" > /dev/mlidbg0
+
+i2c:
+echo "c i2c w 1 0x4a 2 0x5 0xa0" > /dev/mlidbg0
+echo "c i2c r 1 0x5c 0x0 20" > /dev/mlidbg0
+
+io:
+echo "c io r 30" > /dev/mlidbg0
+echo "c io w 108 1" > /dev/mlidbg0
+
+key:
+echo "c key home 2" > /dev/mlidbg0
+echo "c key 107 2" > /dev/mlidbg0
+
+touch:
+echo "c touch 100 480 1" > /dev/mlidbg0
+echo "c touch 100 480 0" > /dev/mlidbg0
+
+soc:
+echo "c soc ad 2" > /dev/mlidbg0
+echo "c soc bl 255" > /dev/mlidbg0
+
+
+mem_log:
+----------保存lidbg信息到文件---------
+当没定义NOT_USE_MEM_LOG时，保存lidbg中通过lidbg(msg...)/lidbgerr(msg...)/FS_ERR(fmt, args...)接口打印的信息到kfifo，该kfifo由lidbg_mem_log.c维护，并默认最多只会保存截止当前最新的LIDBG_FIFO_SIZE(4k)信息；
+修改/data/lidbg/core.txt中dump_mem_log为“1”，或者adb shell执行echo "c mem_log dump" > /dev/mlidbg0，会将当前kfifo中的信息保存到/data/lidbg/lidbg_mem_log.txt中；
+
+trace_msg:
+----------过滤出包含关键字的内核打印信息---------
+在lidbg_qrd/soc/DBG_SOC/drivers_conf/lidbg_trace_msg_string_list.conf中添加要跟踪的关键字，以行为单位；
+该调试功能默认使能，当插上adb调试线时会disable该功能，或者修改/data/lidbg/core.txt中的trace_msg_disable为“1”，也会disable该功能；
+跟踪到包含关键字的整条打印信息会保存在/data/lidbg/lidbg_trace_msg.txt中；
+
+ts_event:
+----------利用触摸板来调试程序---------
+note:触摸板左上角是模拟键0 右上角1 左下角2 右下角reset键;安全起见,需先用密码001122打开总开关后再输入你注册的密码.
+接口描述:
+bool te_regist_password(char *password, void (*cb_password)(char *password ))
+注册一个触摸板密码,当输入的触摸板密码与你注册的密码相符时调用回调函数cb_password.
+
+cmd.conf
+----------利用此文件来发一些lidbg调试指令---------
+例:*c key home 2
+将字符串c key home 2写到/dev/mlidbg0节点*次;*取0-9,0表示不执行
+
+drivers.conf
+----------动态修改lidbg的运行状态---------
+打开触摸板总密码(001122)后，修改/data/lidbg/drivers.txt的条目可以在保存文件后将修改内容反馈到lidbg.
+例gps_debug_en=0,用文件浏览器将0修改为1保存文件后,gps驱动将处于调试模式.
+也可以把drivers.conf放到U盘conf文件夹下修改相应条目后也可以达到同样的目的。
+
+core.conf
+----------通过core.txt来发一些shell指令---------
+打开/data/lidbg/core.txt文件修改如下内容可做些简单的命令;如下
+分号为指令分隔符，逗号为参数分隔符，如下四条指令均会执行
+cmdstring=chmod,/flysystem;echo,add,/sys/block/sda/uevent;remount,/flysystem;rmdir,/system/lib/modules/out11
+
+chmod,/flysystem修改/flysystem权限为777
+rmdir,/flysystem/lib/out删除out目录
+remount,/flysystem重新挂载/flysystem分区为读写
+echo,c io w 27 1,/dev/mlidbg0将c io w 27 1写到/dev/mlidbg0
+
+
+state.conf
+----------观察某些变量的变化---------
+接口描述:
+    fs_regist_state("cpu_temp", &(g_var.temp));
+接口功能:
+间隔一秒(可调)将表示CPU温度的变量的值写到/dev/log/state.txt文件.
+
+
+update:
+----------使用U盘升级lidbg模块,或者改变lidbg运行状态--------
+使用U盘升级lidbg模块:
+将core.conf和drivers.conf拷贝到U盘conf文件夹，并修改core.conf中的update_lidbg_out_dir_en为1后，将lidbg的out目录拷贝到U盘out目录，插入U盘，升级完成后系统将重启.
+改变lidbg运行状态:
+将drivers.conf的gps_debug_en修改为1,core.conf的fs_kmsg_en修改为1,将core.conf和drivers.conf拷贝到U盘conf文件夹,
+插入U盘，系统的gps将运行在调试模式，并且lidbg开始收集系统的串口调试信息，此时在3G拨号界面输入*#*#158013#*#*来把/data/lidbg/调试信息等拷贝到U盘，即可把调试信息取出来在电脑上分析.
+
+
+3G电话拨号:
+----------利用3G拨号应用来调试系统-------
+例:*158#013--dump log and copy to udisk  (Cmd.c (drivers\interface)	3503	3/13/2014)
+在我们车机里面找到3G拨打电话的界面，里面输入*#*#158013#*#*后将车机的相关信息并存入U盘等.
+
+
+fs_log:
+----------将调试信息保存到/data/lidbg/目录下---------
+例:fs_string2file(3, LIDBG_KMSG_FILE_PATH, "fs_dump_kmsg: %s\n", tag);"fs_dump_kmsg: %s\n"
+将tag于fs_dump_kmsg: %s\n合成后写到文件LIDBG_KMSG_FILE_PATH，当文件大小大于3兆时清空文件内容重新记录。
+
+更多的功能请参考所提供的接口
+Lidbg_fileserver.h (core\inc)	4323	3/13/2014
+
+
+
+----------增加读文件夹内文件列表接口lidbg_readdir_and_dealfile---------
+接口描述:
+bool lidbg_readdir_and_dealfile(char *insure_is_dir, void *callback(char *dirname, char *filename))
+函数功能是读取文件夹内都有什么文件，生成文件链表，然后再遍历链表回调callback去处理.
+
